@@ -13,10 +13,14 @@
 @property (strong, nonatomic) IBOutlet UILabel *connectionStatusLabel;
 @property (strong, nonatomic) IBOutlet UILabel *colorLabel;
 @property (strong, nonatomic) IBOutlet UIView *colorView;
+@property (strong, nonatomic) IBOutletCollection(UISlider) NSArray *sliders;
 - (IBAction)sliderValueChanged:(UISlider *)sender;
 @property (strong, nonatomic) MBLMetaWear *device;
+@property (strong, nonatomic) NSDate *whenColorLastChanged;
+@property (strong, nonatomic) NSTimer *setLEDColorTimer;
 - (void)connectToDevice;
 - (void)enableSliders:(BOOL)enable;
+- (void)setLEDColor:(UIColor *)color;
 @property (strong, nonatomic) UIColor *color;
 @end
 
@@ -26,7 +30,12 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    
+    // Disable the sliders at the start
+    [self enableSliders:NO];
+    // Set a nice gray color
     self.color = [UIColor grayColor];
+    // Search for + connect to a device
     [self connectToDevice];
 }
 
@@ -72,10 +81,38 @@
     float components[4];
     [color getRed:&components[0] green:&components[1] blue:&components[2] alpha:&components[3]];
     self.colorLabel.text = [NSString stringWithFormat:@"(%.f, %.f, %.f)", components[0]*255, components[1]*255, components[2]*255];
+    // Update the color of the LED, if connected
+    if (self.device)
+    {
+#warning If you are dissapointed in it not being smooth, read this comment.
+        // As this method is called for every value change, this may be called hundreds of times in a second, which results in lots of flashing as the LED is called every time. To get around this, a timer is used and the value must stay the same for a short amount of time, before the new color is ent over to the LED. Ideally the colour would be sent over at regular intervals and the device would interpolate the LED color, resulting in a smooth transition.
+        
+        float timeDelay = 0.1; // 0.2 seconds
+        
+        if (ABS([self.whenColorLastChanged timeIntervalSinceNow]) < timeDelay) [self.setLEDColorTimer invalidate];
+        
+        self.setLEDColorTimer = [NSTimer scheduledTimerWithTimeInterval:timeDelay target:self selector:@selector(setLEDColor:) userInfo:color repeats:NO];
+    }
+    
+    // Set now as when the color last changed
+    self.whenColorLastChanged = [NSDate date];
+}
+
+- (void)calledAtEnd {
+    
+    NSLog(@"End %@", [NSDate date]);
+}
+
+- (void)setLEDColor:(NSTimer *)timer
+{
+    [self.device.led setLEDColor:(UIColor *)[timer userInfo] withIntensity:0.2];
 }
 
 - (void)enableSliders:(BOOL)enable
 {
+    for (UISlider *slider in self.sliders) {
+        slider.enabled = enable;
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -91,4 +128,12 @@
     components[sender.tag] = sender.value;
     self.color = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:components[3]];
 }
+
+#pragma UINavigationBarDelegate
+
+// So that the bar is 64pt
+- (UIBarPosition)positionForBar:(id <UIBarPositioning>)bar {
+    return UIBarPositionTopAttached;
+}
+
 @end
