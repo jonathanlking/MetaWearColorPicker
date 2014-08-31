@@ -95,9 +95,9 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="colorLabel" destination="NlA-dd-Ijv" id="wxW-v7-GDG"/>
                         <outlet property="colorView" destination="f84-7g-Lhi" id="tEP-aM-Wcd"/>
                         <outlet property="connectionStatusLabel" destination="6wM-K4-XUz" id="Gpj-EH-qTU"/>
-                        <outlet property="currentColorLabel" destination="NlA-dd-Ijv" id="jU9-rO-w9H"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
