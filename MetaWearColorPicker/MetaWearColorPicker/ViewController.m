@@ -22,6 +22,8 @@
 - (void)enableSliders:(BOOL)enable;
 - (void)setLEDColor:(UIColor *)color;
 @property (strong, nonatomic) UIColor *color;
+// This is what the light will look like
+@property (strong, nonatomic) UIColor *calibratedColor;
 @end
 
 @implementation ViewController
@@ -75,6 +77,8 @@
 - (void)setColor:(UIColor *)color
 {
     _color = color;
+#warning As darker and lighter colors are inherently relative and there is only one LED, you cannot 'see' a lightness, only a hue and brightness.
+    
     // Update the background of the color view to the current color
     self.colorView.backgroundColor = color;
     // Update the text in the color label
@@ -86,8 +90,8 @@
     {
 #warning If you are dissapointed in it not being smooth, read this comment.
         // As this method is called for every value change, this may be called hundreds of times in a second, which results in lots of flashing as the LED is called every time. To get around this, a timer is used and the value must stay the same for a short amount of time, before the new color is ent over to the LED. Ideally the colour would be sent over at regular intervals and the device would interpolate the LED color, resulting in a smooth transition.
-        
-        float timeDelay = 0.1; // 0.2 seconds
+#warning You can play around with this value, between 0.1 and 0.2 work well
+        static float timeDelay = 0.1;
         
         if (ABS([self.whenColorLastChanged timeIntervalSinceNow]) < timeDelay) [self.setLEDColorTimer invalidate];
         
@@ -98,14 +102,9 @@
     self.whenColorLastChanged = [NSDate date];
 }
 
-- (void)calledAtEnd {
-    
-    NSLog(@"End %@", [NSDate date]);
-}
-
 - (void)setLEDColor:(NSTimer *)timer
 {
-    [self.device.led setLEDColor:(UIColor *)[timer userInfo] withIntensity:0.2];
+    [self.device.led setLEDColor:(UIColor *)[timer userInfo] withIntensity:1.0];
 }
 
 - (void)enableSliders:(BOOL)enable
