@@ -78,7 +78,6 @@
 {
     _color = color;
 #warning As darker and lighter colors are inherently relative and there is only one LED, you cannot 'see' a lightness, only a hue and brightness.
-    
     // Update the background of the color view to the current color
     self.colorView.backgroundColor = color;
     // Update the text in the color label
